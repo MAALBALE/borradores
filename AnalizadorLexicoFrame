@@ -1,0 +1,128 @@
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
+import javax.swing.*;
+
+public class AnalizadorLexicoFrame extends JFrame {
+    
+    private JTextArea editorTextArea;
+    public AnalizadorLexicoFrame() {
+        
+        initComponents();
+        
+        // Crear JTextArea para el editor
+        editorTextArea = new JTextArea();
+        getContentPane().add(editorTextArea, BorderLayout.CENTER);
+        
+        // Agregar menú Archivo
+        JMenu archivoMenu = new JMenu("Archivo");
+        JMenuItem abrirMenuItem = new JMenuItem("Abrir");
+        JMenuItem guardarMenuItem = new JMenuItem("Guardar");
+        JMenuItem guardarComoMenuItem = new JMenuItem("Guardar como");
+        
+        archivoMenu.add(abrirMenuItem);
+        archivoMenu.add(guardarMenuItem);
+        archivoMenu.add(guardarComoMenuItem);
+        
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(archivoMenu);
+        
+        setJMenuBar(menuBar);
+        // Acción para abrir archivo
+        abrirMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                int resultado = fileChooser.showOpenDialog(AnalizadorLexicoFrame.this);
+
+                if (resultado == JFileChooser.APPROVE_OPTION) {
+                    File archivoSeleccionado = fileChooser.getSelectedFile();
+
+                    try (BufferedReader br = new BufferedReader(new FileReader(archivoSeleccionado))) {
+                        editorTextArea.read(br, null);
+                        archivoActual = archivoSeleccionado;
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(AnalizadorLexicoFrame.this,
+                                "Error al abrir archivo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        // Acción para guardar archivo
+        guardarMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Object archivoActual = null;
+                if (archivoActual == null) {
+                    JFileChooser fileChooser = new JFileChooser();
+                    int resultado = fileChooser.showSaveDialog(AnalizadorLexicoFrame.this);
+
+                    if (resultado == JFileChooser.APPROVE_OPTION) {
+                        archivoActual = fileChooser.getSelectedFile();
+                    }
+                }
+
+                if (archivoActual != null) {
+                    try (BufferedWriter bw = new BufferedWriter(new FileWriter((String) archivoActual))) {
+                        editorTextArea.write(bw);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(AnalizadorLexicoFrame.this,
+                                "Error al guardar archivo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+
+
+        
+        
+        // Configurar la ventana
+        setTitle("Analizador Léxico");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Crear y agregar componentes
+        JTextArea codigoFuenteTextArea = new JTextArea();
+        JButton analizarButton = new JButton("Analizar");
+        JTextArea resultadoTextArea = new JTextArea();
+        resultadoTextArea.setEditable(false);
+
+        // Agregar los componentes al panel principal
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.add(new JScrollPane(codigoFuenteTextArea), BorderLayout.CENTER);
+        panel.add(analizarButton, BorderLayout.SOUTH);
+        panel.add(new JScrollPane(resultadoTextArea), BorderLayout.EAST);
+        add(panel);
+
+        // Agregar un controlador de eventos para el botón "Analizar"
+        analizarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String codigoFuente = codigoFuenteTextArea.getText();
+                AnalizadorLexico analizador = new AnalizadorLexico(codigoFuente);
+                List<AnalizadorLexico.Token> tokens = analizador.analizar();
+                StringBuilder resultado = new StringBuilder();
+                for (AnalizadorLexico.Token token : tokens) {
+                    resultado.append(token.toString()).append("\n");
+                }
+                resultadoTextArea.setText(resultado.toString());
+            }
+        });
+        
+        
+    }
+
+    private void initComponents() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
+}
